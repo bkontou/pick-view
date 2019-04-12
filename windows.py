@@ -8,15 +8,23 @@ from main import *
 from stream import Stream
 
 class WaveformWindow(MainApplication):
-    def __init__(self, parent, *args, **kwargs):
+    def __init__(self, parent, master, *args, **kwargs):
         tk.Frame.__init__(self, parent=None, *args, **kwargs)
         self.parent = parent
+        self.master = master
+        print(self.master.test)
         
         self.streamV = op.Stream()
         self.streamH = op.Stream()
         
         self.widget = None
         self.toolbar = None
+        
+        self.parent.bind('s',self.master.correctBind)
+        self.parent.bind('d',self.master.falseBind)
+        self.parent.bind('f',self.master.reviewBind)
+        self.parent.bind('g',self.master.skipBind)
+        
       
     def readWf(self, path, start, end, origDF):
         self.streamV = Stream(path=path, starttime=start, endtime=end, origDF=origDF, cha='HHZ').build()
@@ -37,7 +45,7 @@ class WaveformWindow(MainApplication):
         
         self.readWf(path, start=start_time, end=end_time, origDF=origDF)
         
-        self.fig = Figure(figsize=(16, 8), dpi=100)
+        self.fig = Figure(figsize=(16, 16), dpi=100)
         a = self.fig.add_subplot(len(self.streamV),2,1)
         n = 1
         for tv, th in zip(self.streamV, self.streamH):

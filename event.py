@@ -12,7 +12,7 @@ class Event:
         
         self.orid = evInfo.iloc[0].orid
         self.time = evInfo.iloc[0].datetime
-        self.status = False
+        self.status = 'unassigned'
         
         self.stream = None
         

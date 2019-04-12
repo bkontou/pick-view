@@ -18,6 +18,7 @@ from matplotlib.backends.backend_tkagg import (
 # Implement the default Matplotlib key bindings.
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
+from functools import partial
 
 from windows import *
 from event import Event
@@ -58,9 +59,15 @@ class MainWindow(MainApplication):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent, *args, **kwargs)
         self.parent = parent
+        self.test = "AAAAAAA"
+        
+        self.parent.bind('s',self.correctBind)
+        self.parent.bind('d',self.falseBind)
+        self.parent.bind('f',self.reviewBind)
+        self.parent.bind('g',self.skipBind)
         
         self.popup = tk.Toplevel()
-        self.wfs = WaveformWindow(self.popup)
+        self.wfs = WaveformWindow(self.popup, self)
         self.wfs.pack(side="top", fill="both", expand=True)
                 
         self.popup.protocol("WM_DELETE_WINDOW", self.wfs.on_closing)
@@ -94,10 +101,13 @@ class MainWindow(MainApplication):
         self.S_cha = "HHE"
         
         #Widgets#
-        self.wf_B = self.Button('view waveform', f=self.show_window)
+        self.wf_B = self.Button('view waveform', f=self.showWindow)
         
-        self.next_B = self.Button('next',f=self.scrollDown,row=2, column=3)
+        self.correct_B = self.Button('correct',f=partial(self.scrollDown,'correct'),row=2, column=3)
+        self.false_B = self.Button('false', f=partial(self.scrollDown,'false'),row=3,column=3)
+        self.review_B = self.Button('review', f=partial(self.scrollDown,'review'),row=4,column=3)
         self.prev_B = self.Button('prev',f=self.scrollUp,row=2,column=0)
+        self.skip_B = self.Button('skip',f=partial(self.scrollDown,'skip'),row=5,column=3)
         
         self.Label("picks csv",row=2,column=1)
         self.csv_E = self.Entry(row=3,column=1,width=50, pady=10)
@@ -106,9 +116,9 @@ class MainWindow(MainApplication):
         
         self.time_L = self.Label(self.p_date, row=5)
         self.id_L = self.Label(self.p_id, row=6)
-        
-        self.CB_var = tk.IntVar()
-        self.goodev_CB = self.Checkbutton(self.CB_var, 'Correct', row=7, column=2)
+        self.N_L = self.Label("%s/%s" % (str(self.N),str(self.Npicks)), row=5, column=0)
+        self.status_L = self.Label("Status: %s" % "None", row=5,column=2)
+
         
         self.save_B = self.Button("Save", f=self.saveOut, row=7,column=0)
         #self.goodev_CB.configure(state='disable')
@@ -128,6 +138,9 @@ class MainWindow(MainApplication):
         
         self.Npicks = len(self.orid_list)
         self.N = 0
+        
+        self.updateInfo()
+        self.showWindow()
     
     def FileWindow(self, event=None):
         self.csv_E.delete(0,'end')
@@ -139,42 +152,52 @@ class MainWindow(MainApplication):
     def updateInfo(self):
         self.time_L.config(text=self.evList[self.N].time)
         self.id_L.config(text=self.evList[self.N].orid)
+        self.N_L.config(text="%s/%s" % (str(self.N),str(self.Npicks)))
+        self.status_L.config(text="Status: %s" % self.evList[self.N].status)
         self.current_event_status = self.evList[self.N].status
-        if self.current_event_status == True:
-            self.goodev_CB.select()
-        else:
-            self.goodev_CB.deselect()
 
     
     def scrollUp(self):
-        self.evList[self.N].status = self.CB_var.get()
         self.N = (self.N - 1)%self.Npicks
         self.updateInfo()
-
-        self.show_window()
+        self.updateWindow()
     
-    def scrollDown(self):
-        self.evList[self.N].status = self.CB_var.get()
+    def scrollDown(self, status):
+        if status != 'skip':
+            self.evList[self.N].status = status
         self.N = (self.N + 1)%self.Npicks
         self.updateInfo()
         
-        self.show_window()
+        self.updateWindow()
         
     def saveOut(self):
         for index,i in enumerate(self.orid_list):
-            self.orid_checklist.iloc[index] = i, bool(self.evList[self.evList.index(i)].status)
+            self.orid_checklist.iloc[index] = i, self.evList[self.evList.index(i)].status
         
         self.orid_checklist.to_csv('%s-out.csv' % self.csv_E.get())
 
+    ###BINDINGS
+    def correctBind(self, _event=None):
+        self.scrollDown('correct')
+    def falseBind(self, _event=None):
+        self.scrollDown('false')
+    def reviewBind(self, _event=None):
+        self.scrollDown('review')
+    def skipBind(self, _event=None):
+        self.scrollDown('skip')
+    ###
     
+        
     def Debug(self):
         print(self.pick_df)
         
-    def show_window(self):
+    def showWindow(self):
 
         self.popup.update()
         self.popup.deiconify()
         self.wfs.plot(self.evList[self.N].evInfo, self.path)
+        
+    def updateWindow(self):
         self.wfs.plot(self.evList[self.N].evInfo, self.path)
         
     def on_close(self):
@@ -186,7 +209,7 @@ if __name__ == '__main__':
     root = tk.Tk()
     MA = MainWindow(root)
     MA.pack(side="top", fill="both", expand=True)
-    
+        
     while running:
         root.update()
         if MA.closed:
