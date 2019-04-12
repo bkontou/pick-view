@@ -20,6 +20,7 @@ from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
 
 from windows import *
+from event import Event
 
 class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -61,7 +62,7 @@ class MainWindow(MainApplication):
         self.popup = tk.Toplevel()
         self.wfs = WaveformWindow(self.popup)
         self.wfs.pack(side="top", fill="both", expand=True)
-        
+                
         self.popup.protocol("WM_DELETE_WINDOW", self.wfs.on_closing)
         self.parent.protocol("WM_DELETE_WINDOW", self.on_close)
         self.closed = 0
@@ -70,78 +71,111 @@ class MainWindow(MainApplication):
         
         #Members#
         self.pick_df = pd.DataFrame()
+        self.orid_df = pd.DataFrame()
+        self.orid_checklist = pd.DataFrame.from_dict({'orid':[],'correct':[]})
+        
+        self.orid_list = []
         self.Npicks = len(self.pick_df)
         self.N = 0
         self.pick_info = {}
         
+        self.current_event_status = False
+        
+        self.evList = []
+        
+        ###CHANGE THIS###
+        self.path = '/Users/pgcseismolab/Documents/'
+        
         #info
         self.p_date = "None"
         self.p_id = "None"
-        self.p_type = "None"
-        self.p_sta = "None"
+
+        self.P_cha = "HHZ"
+        self.S_cha = "HHE"
         
         #Widgets#
         self.wf_B = self.Button('view waveform', f=self.show_window)
         
-        self.next_B = self.Button('next',f=self.scrollDown,row=2)
-        self.prev_B = self.Button('prev',f=self.scrollUp,row=2,column=2)
+        self.next_B = self.Button('next',f=self.scrollDown,row=2, column=3)
+        self.prev_B = self.Button('prev',f=self.scrollUp,row=2,column=0)
         
-        self.Label("picks csv",row=2,column=3)
+        self.Label("picks csv",row=2,column=1)
         self.csv_E = self.Entry(row=3,column=1,width=50, pady=10)
         self.FB = self.Button("Choose File",f=self.FileWindow, row=3,column=2)
         self.read_B = self.Button("read", f=self.loadDF, row=4)
         
         self.time_L = self.Label(self.p_date, row=5)
         self.id_L = self.Label(self.p_id, row=6)
-        self.type_L = self.Label(self.p_type, row=7)
-        self.sta_L = self.Label(self.p_sta, row=8)
+        
+        self.CB_var = tk.IntVar()
+        self.goodev_CB = self.Checkbutton(self.CB_var, 'Correct', row=7, column=2)
+        
+        self.save_B = self.Button("Save", f=self.saveOut, row=7,column=0)
+        #self.goodev_CB.configure(state='disable')
         
         
     def loadDF(self):
         self.pick_df = pd.read_csv(self.csv_E.get())
-        self.Npicks = len(self.pick_df)
+        self.pick_df = self.pick_df.sort_values('orid')
+        self.orid_list = self.pick_df.orid.unique()
+        self.orid_checklist.orid = [0]*len(self.orid_list)
+        
+        
+        #update eventlist
+        for orid in self.orid_list:
+            self.evList.append(Event(self.pick_df[self.pick_df.orid == orid]))
+            
+        
+        self.Npicks = len(self.orid_list)
+        self.N = 0
     
     def FileWindow(self, event=None):
         self.csv_E.delete(0,'end')
         filename = filedialog.askopenfilename()
         self.csv_E.insert(0,filename)
         
-    def updatePick(self):
-        try:
-            self.pick_info = self.pick_df.iloc[self.N]
-            
-            self.p_date = self.pick_info['datetime']
-            self.p_id = self.pick_info['orid']
-            self.p_type = self.pick_info['phase']
-            self.p_sta = self.pick_info['sta']
-        except Exception as e:
-            print(e)
+
             
     def updateInfo(self):
-        self.time_L.config(text=self.p_date)
-        self.id_L.config(text=self.p_id)
-        self.type_L.config(text=self.p_type)
-        self.sta_L.config(text=self.p_sta)
+        self.time_L.config(text=self.evList[self.N].time)
+        self.id_L.config(text=self.evList[self.N].orid)
+        self.current_event_status = self.evList[self.N].status
+        if self.current_event_status == True:
+            self.goodev_CB.select()
+        else:
+            self.goodev_CB.deselect()
+
     
     def scrollUp(self):
+        self.evList[self.N].status = self.CB_var.get()
         self.N = (self.N - 1)%self.Npicks
-        self.updatePick()
         self.updateInfo()
-        
 
-        self.wfs.plot()
-        
+        self.show_window()
+    
     def scrollDown(self):
+        self.evList[self.N].status = self.CB_var.get()
         self.N = (self.N + 1)%self.Npicks
-        self.updatePick()
         self.updateInfo()
+        
+        self.show_window()
+        
+    def saveOut(self):
+        for index,i in enumerate(self.orid_list):
+            self.orid_checklist.iloc[index] = i, bool(self.evList[self.evList.index(i)].status)
+        
+        self.orid_checklist.to_csv('%s-out.csv' % self.csv_E.get())
+
     
     def Debug(self):
         print(self.pick_df)
         
     def show_window(self):
+
         self.popup.update()
         self.popup.deiconify()
+        self.wfs.plot(self.evList[self.N].evInfo, self.path)
+        self.wfs.plot(self.evList[self.N].evInfo, self.path)
         
     def on_close(self):
         self.closed = 1

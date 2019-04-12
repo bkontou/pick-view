@@ -67,10 +67,13 @@ class Stream(op.Stream):
         
         if 'endtime' in kwargs:
             self.endtime = kwargs['endtime']
-
-        if 'sta' in kwargs:
-            self.sta = kwargs['sta']
         
+        if 'starttime' in kwargs and 'endtime' in kwargs:
+            self.seconds = int(self.endtime - self.starttime)
+
+        if 'origDF' in kwargs:
+            self.origDF = kwargs['origDF']
+            
         if 'cha' in kwargs:
             self.cha = kwargs['cha']
             
@@ -95,7 +98,7 @@ class Stream(op.Stream):
 
         return t
     
-    def _find_file(self, files, n,c,s=None):
+    def _find_file(self, files, s,c,n=None):
         """
         Finds the file containing station, network, and optional channel name
         
@@ -123,7 +126,7 @@ class Stream(op.Stream):
                     return f
         return 0
     
-    def _get_trace(self, file, n, c, s=None, starttime=None, endtime=None):
+    def _get_trace(self, file, n, c, s, starttime=None, endtime=None):
         """
         Gets trace from a waveform file from specified start to end time
         
@@ -147,7 +150,7 @@ class Stream(op.Stream):
         else, will return a zeroed waveform
         """
         try:
-            return op.read(file, starttime=self.start, endtime=self.endtime)
+            return op.read(file, starttime=self.starttime, endtime=self.endtime)
         except:
             s = str(s)
             n = str(n)
@@ -170,73 +173,76 @@ class Stream(op.Stream):
         """
         Fill stream object with waveforms from database specified in sta_cat dataframe
         """
-        month = str(self.starttime.month)
-        day = str(self.starttime.day)
-        s = self.sta
-        c = self.cha
-        
-        file = ""
-        files = os.listdir(self.path + month + '/' + day + '/')
+        for index, row in self.origDF.iterrows():
+            s = row['sta']
+            n = row['net']
+            c = self.cha
+            month = str(self.starttime.month).zfill(2)
+            day = str(self.starttime.day).zfill(2)
+            
+    #        print(starttime.year,starttime.month,starttime.day,starttime.hour)
+            file = ""
+            files = os.listdir(self.path + month + '/' + day + '/')
+    
+            if self.starttime.day == 1 and self.starttime.month == 1 and self.starttime.hour == 0:
+                #print("first hour of the year")
+                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                
+                self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
+            
+            elif self.starttime.month == 12 and (self.starttime + 3600).month == 1:
+                #print("last hour of the year")
+                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                        
+                self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
+            elif (self.starttime + 3600).month > self.starttime.month:
+                #print("last hour of the month")
+                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                        
+                self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
+    
+                monthnext = str((self.starttime + 3600).month).zfill(2)
+                dayprev = "01"
+                
+                filesprev = os.listdir(self.path + monthnext + '/' + dayprev + '/')
+                
+                file = self.path + monthnext + '/' + dayprev + '/' + str(self._find_file(filesprev,s,n,c))
+                
+                self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
+            elif int(self.starttime.hour) == 0:
+                #print("first hour of day")
+                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                        
+                self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
+    
+    
+                dayprev = str((self.starttime - 3600).day).zfill(2)
+                monthprev = str((self.starttime - 3600).month).zfill(2)
+                
+                filesprev = os.listdir(self.path + monthprev + '/' + dayprev + '/')
+                
+                file = self.path + monthprev + '/' + dayprev + '/' + str(self._find_file(filesprev,s,n,c))
+                        
+                self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
+    
+            elif int(self.starttime.hour) == 23:
+                #print("last hour of day")
+                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                        
+                self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
+    
+                daynext = str((self.starttime + 3600).day).zfill(2)
+                filesprev = os.listdir(self.path + month + '/' + daynext + '/')
+                
+                file = self.path + month + '/' + daynext + '/' + str(self._find_file(filesprev,s,n,c))
+                        
+                self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
+            else:
+                
+                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                        
+                self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)              
 
-        if self.starttime.day == 1 and self.starttime.month == 1 and self.starttime.hour == 0:
-            #print("first hour of the year")
-            file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,c))
-            
-            self += self._get_trace(file, s, c, starttime=self.start, endtime=self.endtime)
-        
-        elif self.starttime.month == 12 and (self.starttime + 3600).month == 1:
-            #print("last hour of the year")
-            file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,c))
-                    
-            self += self._get_trace(file, s, c, starttime=self.start, endtime=self.endtime)
-        elif (self.starttime + 3600).month > self.starttime.month:
-            #print("last hour of the month")
-            file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,c))
-                    
-            self += self._get_trace(file, s, c, starttime=self.start, endtime=self.endtime)
-
-            monthnext = str((self.starttime + 3600).month).zfill(2)
-            dayprev = "01"
-            
-            filesprev = os.listdir(self.path + monthnext + '/' + dayprev + '/')
-            
-            file = self.path + monthnext + '/' + dayprev + '/' + str(self._find_file(filesprev,s,c))
-            
-            self += self._get_trace(file, s, c, starttime=self.start, endtime=self.endtime)
-        elif int(self.starttime.hour) == 0:
-            #print("first hour of day")
-            file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,c))
-                    
-            self += self._get_trace(file, s, c, starttime=self.start, endtime=self.endtime)
-
-
-            dayprev = str((self.starttime - 3600).day).zfill(2)
-            monthprev = str((self.starttime - 3600).month).zfill(2)
-            
-            filesprev = os.listdir(self.path + monthprev + '/' + dayprev + '/')
-            
-            file = self.path + monthprev + '/' + dayprev + '/' + str(self._find_file(filesprev,s,c))
-                    
-            self += self._get_trace(file, s, c, starttime=self.start, endtime=self.endtime)
-
-        elif int(self.starttime.hour) == 23:
-            #print("last hour of day")
-            file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,c))
-                    
-            self += self._get_trace(file, s, c, starttime=self.start, endtime=self.endtime)
-
-            daynext = str((self.starttime + 3600).day).zfill(2)
-            filesprev = os.listdir(self.path + month + '/' + daynext + '/')
-            
-            file = self.path + month + '/' + daynext + '/' + str(self._find_file(filesprev,s,c))
-                    
-            self += self._get_trace(file, s, c, starttime=self.start, endtime=self.endtime)
-        else:
-            
-            file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,c))
-                    
-            self += self._get_trace(file, s, c, starttime=self.start, endtime=self.endtime)
-            
           
     def fix_cut(self):
         """
@@ -277,14 +283,14 @@ class Stream(op.Stream):
             if t.stats.npts != (self.seconds*self.sr + 1):
                 newst = t.stats.__deepcopy__()
                 newst.npts = self.seconds*self.sr + 1
-                newst.starttime = self.start
+                newst.starttime = self.starttime
     
                 st1 = t.stats.__deepcopy__()
-                st1.starttime = self.start
+                st1.starttime = self.starttime
                 st1.npts = 1
     
                 st2 = st1.__deepcopy__()
-                st2.starttime = self.end
+                st2.starttime = self.endtime
     
                 t1 = op.Trace(data=np.ones(1,dtype=t.data.dtype),header=st1)
                 t2 = op.Trace(data=np.ones(1,dtype=t.data.dtype),header=st2)
@@ -297,6 +303,23 @@ class Stream(op.Stream):
                 
         self.clear()
         self += newwf
+        
+    def remove_duplicates(self):
+        """
+        Remove duplicate traces from stream
+        """
+        
+        new = Stream()
+        
+        for t in self:
+            if t.id in new:
+                pass
+            else:
+                new += t
+        
+        self.clear()
+        self += new
+        del new
     
     def build(self):
         """
@@ -304,5 +327,6 @@ class Stream(op.Stream):
         """
         self.fill_stream()
         self.fix_cut()
+        self.remove_duplicates()
         self.filter('bandpass', freqmin=2, freqmax=20)
         return self
