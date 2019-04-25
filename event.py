@@ -14,6 +14,9 @@ class Event:
         self.time = evInfo.iloc[0].datetime
         self.status = 'unassigned'
         
+        self.lat = evInfo.iloc[0].lat
+        self.lon = evInfo.iloc[0].lon
+        
         self.stream = None
         
     

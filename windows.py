@@ -94,3 +94,38 @@ class WaveformWindow(MainApplication):
     
     def on_closing(self):
         self.parent.withdraw()
+
+
+class MapWindow(MainApplication):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent=None, *args, **kwargs)
+        self.parent = parent
+        
+        self.widget = None
+        self.toolbar = None
+    
+    def plot(self, origins, current):
+        if self.widget:
+            self.widget.destroy()
+        
+        if self.toolbar:
+            self.toolbar.destroy()
+        
+        self.fig = Figure(figsize=(6,6))
+        self.a = self.fig.add_subplot(111)
+        
+        self.a.scatter(origins['lat'], origins['lon'])
+        self.a.scatter(current.lat,current.lon, c='orange', s=80)
+        
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.parent)  # A tk.DrawingArea.
+        
+        self.toolbar = NavigationToolbar2Tk(self.canvas, self)
+        
+        self.widget = self.canvas.get_tk_widget()
+        self.widget.pack(fill=tk.BOTH)
+        
+        self.canvas.draw()
+        
+        
+    def on_closing(self):
+        self.parent.withdraw()

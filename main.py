@@ -74,11 +74,18 @@ class MainWindow(MainApplication):
         self.parent.protocol("WM_DELETE_WINDOW", self.on_close)
         self.closed = 0
         
+        self.map_popup = tk.Toplevel()
+        self.map = MapWindow(self.map_popup)
+        self.map.pack(side="top", fill="both", expand=True)
+        
+        self.map_popup.protocol("WM_DELETE_WINDOW", self.map.on_closing)
+        
         self.winfo_toplevel().title("Pick Viewer")
         
         #Members#
         self.pick_df = pd.DataFrame()
         self.orid_df = pd.DataFrame()
+        self.orig_locs = {'lat':[],'lon':[]}
         self.orid_checklist = pd.DataFrame.from_dict({'orid':[],'correct':[]})
         
         self.orid_list = []
@@ -130,11 +137,14 @@ class MainWindow(MainApplication):
         self.orid_list = self.pick_df.orid.unique()
         self.orid_checklist.orid = [0]*len(self.orid_list)
         
-        
         #update eventlist
         for orid in self.orid_list:
             self.evList.append(Event(self.pick_df[self.pick_df.orid == orid]))
-            
+        
+        for event in self.evList:
+            self.orig_locs['lat'].append(event.lat)
+            self.orig_locs['lon'].append(event.lon)
+        self.orig_locs = pd.DataFrame.from_dict(self.orig_locs)
         
         self.Npicks = len(self.orid_list)
         self.N = 0
@@ -193,11 +203,16 @@ class MainWindow(MainApplication):
         
     def showWindow(self):
 
+        self.map_popup.update()
+        self.map_popup.deiconify()
+        self.map.plot(self.orig_locs, self.evList[self.N])
+        
         self.popup.update()
         self.popup.deiconify()
         self.wfs.plot(self.evList[self.N].evInfo, self.path)
         
     def updateWindow(self):
+        self.map.plot(self.orig_locs, self.evList[self.N])
         self.wfs.plot(self.evList[self.N].evInfo, self.path)
         
     def on_close(self):
