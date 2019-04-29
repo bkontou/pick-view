@@ -320,6 +320,24 @@ class Stream(op.Stream):
         self.clear()
         self += new
         del new
+        
+    def fix_masked(self, fill_value=0):
+        """
+        After fixing cut traces, some data may be missing, in which case numpy will mask the data,
+        making it unusable
+        
+        fix_masked will check to see if any array is masked,
+        if so, it will fill missing data with fill_value
+        
+        Parameters
+        ----------
+        fill_value: value to fill missing data in traces
+        """
+        for trace in self:
+            if np.ma.is_masked(trace.data):
+                trace.data = trace.data.filled(fill_value)
+            else:
+                pass
     
     def build(self):
         """
@@ -328,5 +346,6 @@ class Stream(op.Stream):
         self.fill_stream()
         self.fix_cut()
         self.remove_duplicates()
+        self.fix_masked()
         self.filter('bandpass', freqmin=2, freqmax=20)
         return self
