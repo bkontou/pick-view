@@ -132,9 +132,10 @@ class MapWindow(MainApplication):
             if ev.status == 'correct':
                 self.a.scatter(ev.lat,ev.lon, c='green')
             if ev.status == 'review':
-                self.a.scatter(ev.lat,ev.lon, c='orange')
+                self.a.scatter(ev.lat,ev.lon, c='orange', alpha=0.5)
             if ev.status == 'false':
-                self.a.scatter(ev.lat,ev.lon, c='black')
+                pass
+                #self.a.scatter(ev.lat,ev.lon, c='black')
             
         
         self.a.scatter(current.lat,current.lon, facecolors='none', edgecolors='r', s=80)
