@@ -38,6 +38,18 @@ class WaveformWindow(MainApplication):
         if self.toolbar:
             self.toolbar.destroy()
         
+        try:
+            del self.streamV
+            del self.streamH
+        except:
+            pass
+        
+        try:
+            del self.fig
+            del self.canvas
+        except:
+            pass
+        
         cut_start = 10 #time in seconds to cut from start
         cut_end = 10   #same thing but for the end
         start_time = op.UTCDateTime(origDF.datetime.apply(op.UTCDateTime).min())-cut_start-5
@@ -114,8 +126,18 @@ class MapWindow(MainApplication):
         self.fig = Figure(figsize=(6,6))
         self.a = self.fig.add_subplot(111)
         
-        self.a.scatter(origins['lat'], origins['lon'])
-        self.a.scatter(current.lat,current.lon, c='orange', s=80)
+        for ev in origins:
+            if ev.status == 'unassigned':
+                self.a.scatter(ev.lat,ev.lon, c='turquoise')
+            if ev.status == 'correct':
+                self.a.scatter(ev.lat,ev.lon, c='green')
+            if ev.status == 'review':
+                self.a.scatter(ev.lat,ev.lon, c='orange')
+            if ev.status == 'false':
+                self.a.scatter(ev.lat,ev.lon, c='black')
+            
+        
+        self.a.scatter(current.lat,current.lon, facecolors='none', edgecolors='r', s=80)
         
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.parent)  # A tk.DrawingArea.
         

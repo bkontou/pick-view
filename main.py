@@ -12,6 +12,7 @@ import obspy as op
 import os
 import numpy as np
 import pandas as pd
+import pickle
 
 from matplotlib.backends.backend_tkagg import (
     FigureCanvasTkAgg, NavigationToolbar2Tk)
@@ -86,7 +87,7 @@ class MainWindow(MainApplication):
         self.pick_df = pd.DataFrame()
         self.orid_df = pd.DataFrame()
         self.orig_locs = {'lat':[],'lon':[]}
-        self.orid_checklist = pd.DataFrame.from_dict({'orid':[],'correct':[]})
+        self.orid_checklist = {'orid':[],'status':[]}
         
         self.orid_list = []
         self.Npicks = len(self.pick_df)
@@ -98,7 +99,7 @@ class MainWindow(MainApplication):
         self.evList = []
         
         ###CHANGE THIS###
-        self.path = '/Users/pgcseismolab/Documents/'
+        self.path = 'C:/Users/bkontou/Documents/archive'
         
         #info
         self.p_date = "None"
@@ -116,46 +117,65 @@ class MainWindow(MainApplication):
         self.prev_B = self.Button('prev',f=self.scrollUp,row=2,column=0)
         self.skip_B = self.Button('skip',f=partial(self.scrollDown,'skip'),row=5,column=3)
         
-        self.Label("picks csv",row=2,column=1)
+        self.Label("picks csv",row=2,column=1) 
         self.csv_E = self.Entry(row=3,column=1,width=50, pady=10)
-        self.FB = self.Button("Choose File",f=self.FileWindow, row=3,column=2)
-        self.read_B = self.Button("read", f=self.loadDF, row=4)
+        self.FB = self.Button("Choose File",f=partial(self.FileWindow, self.csv_E), row=3,column=2)
         
-        self.time_L = self.Label(self.p_date, row=5)
-        self.id_L = self.Label(self.p_id, row=6)
-        self.N_L = self.Label("%s/%s" % (str(self.N),str(self.Npicks)), row=5, column=0)
-        self.status_L = self.Label("Status: %s" % "None", row=5,column=2)
+        self.Label("load backup save",row=4,column=1)
+        self.save_E = self.Entry(row=5, column=1, width=50)
+        self.save_FB = self.Button("Choose File", f=partial(self.FileWindow,self.save_E),row=5,column=2)
+        
+        
+        self.read_B = self.Button("read", f=self.load, row=6, pady=10)
+        
+        self.time_L = self.Label(self.p_date, row=7)
+        self.id_L = self.Label(self.p_id, row=8)
+        self.N_L = self.Label("%s/%s" % (str(self.N),str(self.Npicks)), row=7, column=0)
+        self.status_L = self.Label("Status: %s" % "None", row=7,column=2)
 
         
-        self.save_B = self.Button("Save", f=self.saveOut, row=7,column=0)
+        self.save_B = self.Button("Save", f=self.saveOut, row=9,column=0)
         #self.goodev_CB.configure(state='disable')
         
+    def load(self):
+        if self.save_E.get():
+            self.loadSave()
+        elif self.csv_E.get():
+            self.loadDF()
+        else:
+            print("No file selected")
         
     def loadDF(self):
         self.pick_df = pd.read_csv(self.csv_E.get())
         self.pick_df = self.pick_df.sort_values('orid')
         self.orid_list = self.pick_df.orid.unique()
-        self.orid_checklist.orid = [0]*len(self.orid_list)
         
         #update eventlist
         for orid in self.orid_list:
             self.evList.append(Event(self.pick_df[self.pick_df.orid == orid]))
         
-        for event in self.evList:
-            self.orig_locs['lat'].append(event.lat)
-            self.orig_locs['lon'].append(event.lon)
-        self.orig_locs = pd.DataFrame.from_dict(self.orig_locs)
         
         self.Npicks = len(self.orid_list)
         self.N = 0
         
         self.updateInfo()
         self.showWindow()
+        
+    def loadSave(self):
+        with open(self.save_E.get(),'rb') as f:
+            info = pickle.load(f)
+            
+        self.evList = info['evList']
+        self.N = info['N']
+        self.Npicks = info['Npicks']
+        
+        self.updateInfo()
+        self.updateWindow()
     
-    def FileWindow(self, event=None):
-        self.csv_E.delete(0,'end')
+    def FileWindow(self, entry, event=None):
+        entry.delete(0,'end')
         filename = filedialog.askopenfilename()
-        self.csv_E.insert(0,filename)
+        entry.insert(0,filename)
         
 
             
@@ -180,11 +200,25 @@ class MainWindow(MainApplication):
         
         self.updateWindow()
         
-    def saveOut(self):
-        for index,i in enumerate(self.orid_list):
-            self.orid_checklist.iloc[index] = i, self.evList[self.evList.index(i)].status
+    def saveOut(self, crash=False):
+        for event in self.evList:
+            self.orid_checklist['orid'].append(event.orid)
+            self.orid_checklist['status'].append(event.status)
         
-        self.orid_checklist.to_csv('%s-out.csv' % self.csv_E.get())
+        self.orid_checklist = pd.DataFrame.from_dict(self.orid_checklist)
+        
+        if crash:
+            self.orid_checklist.to_csv('backup.csv')
+        else:
+            self.orid_checklist.to_csv('%s-out.csv' % self.csv_E.get())
+                    
+    def saveState(self):
+        stateDict = {'evList':self.evList,
+                     'N':self.N,
+                     'Npicks':self.Npicks}
+        
+        with open('./saves/%s.p' % 'backup','wb') as f:
+            pickle.dump(stateDict, f)
 
     ###BINDINGS
     def correctBind(self, _event=None):
@@ -205,14 +239,14 @@ class MainWindow(MainApplication):
 
         self.map_popup.update()
         self.map_popup.deiconify()
-        self.map.plot(self.orig_locs, self.evList[self.N])
+        self.map.plot(self.evList, self.evList[self.N])
         
         self.popup.update()
         self.popup.deiconify()
         self.wfs.plot(self.evList[self.N].evInfo, self.path)
         
     def updateWindow(self):
-        self.map.plot(self.orig_locs, self.evList[self.N])
+        self.map.plot(self.evList, self.evList[self.N])
         self.wfs.plot(self.evList[self.N].evInfo, self.path)
         
     def on_close(self):
@@ -226,8 +260,14 @@ if __name__ == '__main__':
     MA.pack(side="top", fill="both", expand=True)
         
     while running:
-        root.update()
-        if MA.closed:
-            root.destroy()
-            running = 0
+        try:
+            root.update()
+            if MA.closed:
+                MA.saveState()
+                root.destroy()
+                running = 0
+        except:
+            MA.saveState()
+    
+    
     #root.mainloop()

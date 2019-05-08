@@ -16,9 +16,6 @@ class Event:
         
         self.lat = evInfo.iloc[0].lat
         self.lon = evInfo.iloc[0].lon
-        
-        self.stream = None
-        
     
     def __eq__(self, orid):
         if self.orid == orid:
