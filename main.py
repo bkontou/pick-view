@@ -22,6 +22,7 @@ from matplotlib.figure import Figure
 from functools import partial
 
 from windows import *
+from stream import Stream
 from event import Event
 
 class MainApplication(tk.Frame):
@@ -92,6 +93,7 @@ class MainWindow(MainApplication):
         self.orid_list = []
         self.Npicks = len(self.pick_df)
         self.N = 0
+        self.group_N = 0
         self.pick_info = {}
         
         self.current_event_status = False
@@ -100,6 +102,7 @@ class MainWindow(MainApplication):
         
         ###CHANGE THIS###
         self.path = 'C:/Users/bkontou/Documents/archive'
+        self.maxwf = 10
         
         #info
         self.p_date = "None"
@@ -158,6 +161,8 @@ class MainWindow(MainApplication):
         self.Npicks = len(self.orid_list)
         self.N = 0
         
+        self.updateWaveforms()
+        
         self.updateInfo()
         self.showWindow()
         
@@ -168,6 +173,9 @@ class MainWindow(MainApplication):
         self.evList = info['evList']
         self.N = info['N']
         self.Npicks = info['Npicks']
+        self.group_N = info['group_N']
+        
+        self.updateWaveforms()
         
         self.updateInfo()
         self.updateWindow()
@@ -178,9 +186,26 @@ class MainWindow(MainApplication):
         entry.insert(0,filename)
         
 
+    def updateWaveforms(self):
+                
+        for event in self.evList:
+            event.streamH = Stream()
+            event.streamV = Stream()
+        
+        for ev in self.evList[self.group_N*self.maxwf:self.group_N*self.maxwf+self.maxwf]:
             
+            cut_start = 10 #time in seconds to cut from start
+            cut_end = 10   #same thing but for the end
+            start_time = ev.timemin-cut_start
+            end_time = ev.timemax+cut_end
+            
+            ev.streamH = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha='HHE').build()
+            ev.streamV = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha='HHZ').build()
+    
+
+
     def updateInfo(self):
-        self.time_L.config(text=self.evList[self.N].time)
+        self.time_L.config(text=self.evList[self.N].timemin)
         self.id_L.config(text=self.evList[self.N].orid)
         self.N_L.config(text="%s/%s" % (str(self.N),str(self.Npicks)))
         self.status_L.config(text="Status: %s" % self.evList[self.N].status)
@@ -189,6 +214,12 @@ class MainWindow(MainApplication):
     
     def scrollUp(self):
         self.N = (self.N - 1)%self.Npicks
+        
+        if self.N%self.maxwf == 0 and self.N != 0:
+            print("reading new waveforms")
+            self.group_N -= 1
+            self.updateWaveforms()
+        
         self.updateInfo()
         self.updateWindow()
     
@@ -196,8 +227,13 @@ class MainWindow(MainApplication):
         if status != 'skip':
             self.evList[self.N].status = status
         self.N = (self.N + 1)%self.Npicks
-        self.updateInfo()
         
+        if self.N%self.maxwf == 0 and self.N != 0:
+            print("reading new waveforms")
+            self.group_N += 1
+            self.updateWaveforms()
+        
+        self.updateInfo()
         self.updateWindow()
         
     def saveOut(self, crash=False):
@@ -215,7 +251,8 @@ class MainWindow(MainApplication):
     def saveState(self):
         stateDict = {'evList':self.evList,
                      'N':self.N,
-                     'Npicks':self.Npicks}
+                     'Npicks':self.Npicks,
+                     'group_N':self.group_N}
         
         with open('./saves/%s.p' % 'backup','wb') as f:
             pickle.dump(stateDict, f)
@@ -243,11 +280,11 @@ class MainWindow(MainApplication):
         
         self.popup.update()
         self.popup.deiconify()
-        self.wfs.plot(self.evList[self.N].evInfo, self.path)
+        self.wfs.plot(self.evList[self.N])
         
     def updateWindow(self):
         self.map.plot(self.evList, self.evList[self.N])
-        self.wfs.plot(self.evList[self.N].evInfo, self.path)
+        self.wfs.plot(self.evList[self.N])
         
     def on_close(self):
         self.closed = 1

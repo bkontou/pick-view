@@ -30,7 +30,7 @@ class WaveformWindow(MainApplication):
         self.streamV = Stream(path=path, starttime=start, endtime=end, origDF=origDF, cha='HHZ').build()
         self.streamH = Stream(path=path, starttime=start, endtime=end, origDF=origDF, cha='HHE').build()
     
-    def plot(self, origDF, path):
+    def plot(self, event):
         
         if self.widget:
             self.widget.destroy()
@@ -38,11 +38,13 @@ class WaveformWindow(MainApplication):
         if self.toolbar:
             self.toolbar.destroy()
         
-        try:
-            del self.streamV
-            del self.streamH
-        except:
-            pass
+# =============================================================================
+#         try:
+#             del self.streamV
+#             del self.streamH
+#         except:
+#             pass
+# =============================================================================
         
         try:
             del self.fig
@@ -52,26 +54,28 @@ class WaveformWindow(MainApplication):
         
         cut_start = 10 #time in seconds to cut from start
         cut_end = 10   #same thing but for the end
-        start_time = op.UTCDateTime(origDF.datetime.apply(op.UTCDateTime).min())-cut_start-5
-        end_time = op.UTCDateTime(origDF.datetime.apply(op.UTCDateTime).max())+cut_end+5
-        
-        self.readWf(path, start=start_time, end=end_time, origDF=origDF)
-        
+# =============================================================================
+#         start_time = op.UTCDateTime(origDF.datetime.apply(op.UTCDateTime).min())-cut_start-5
+#         end_time = op.UTCDateTime(origDF.datetime.apply(op.UTCDateTime).max())+cut_end+5
+#         
+#         self.readWf(path, start=start_time, end=end_time, origDF=origDF)
+#         
+# =============================================================================
         self.fig = Figure(figsize=(16, 16), dpi=100)
-        a = self.fig.add_subplot(len(self.streamV),2,1)
+        a = self.fig.add_subplot(len(event.streamV),2,1)
         n = 1
-        for tv, th in zip(self.streamV, self.streamH):
+        for tv, th in zip(event.streamV, event.streamH):
             tv.data = tv.data[cut_start*100:]
             tv.data = tv.data[:len(tv.data)-cut_end]
             
             th.data = th.data[cut_start*100:]
             th.data = th.data[:len(th.data)-cut_end]
             
-            a = self.fig.add_subplot(len(self.streamH),2,2*n)
+            a = self.fig.add_subplot(len(event.streamH),2,2*n)
             a.plot(th, label=th.id)
-            for index, row in origDF.iterrows():
+            for index, row in event.evInfo.iterrows():
                 if row['sta'] == th.stats.station:
-                    cut_time = start_time + cut_start
+                    cut_time = event.timemin
                     pick_loc = int((op.UTCDateTime(row['datetime']) - cut_time)*100)
                     #pick_loc = (op.UTCDateTime(row['datetime']) - start_time)*100
                     if row['phase'] == 'S':
@@ -79,11 +83,11 @@ class WaveformWindow(MainApplication):
                         a.text(pick_loc+1,0, row['phase'], rotation=90)
             
 
-            a = self.fig.add_subplot(len(self.streamV),2,2*n-1)
+            a = self.fig.add_subplot(len(event.streamV),2,2*n-1)
             a.plot(tv, label=tv.id)
-            for index, row in origDF.iterrows():
+            for index, row in event.evInfo.iterrows():
                 if row['sta'] == tv.stats.station:
-                    cut_time = start_time + cut_start
+                    cut_time = event.timemin
                     pick_loc = int((op.UTCDateTime(row['datetime']) - cut_time)*100)
                     #pick_loc = (op.UTCDateTime(row['datetime']) - start_time)*100
                     if row['phase'] == 'P':
@@ -92,7 +96,7 @@ class WaveformWindow(MainApplication):
             
             n += 1
 
-        self.fig.text(0,0,"ORID: %s" % origDF.iloc[0].orid)
+        self.fig.text(0,0,"ORID: %s" % event.evInfo.iloc[0].orid)
         
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.parent)  # A tk.DrawingArea.
         
@@ -132,9 +136,10 @@ class MapWindow(MainApplication):
             if ev.status == 'correct':
                 self.a.scatter(ev.lat,ev.lon, c='green')
             if ev.status == 'review':
-                self.a.scatter(ev.lat,ev.lon, c='orange')
+                self.a.scatter(ev.lat,ev.lon, c='orange', alpha=0.5)
             if ev.status == 'false':
-                self.a.scatter(ev.lat,ev.lon, c='black')
+                pass
+                #self.a.scatter(ev.lat,ev.lon, c='black')
             
         
         self.a.scatter(current.lat,current.lon, facecolors='none', edgecolors='r', s=80)
@@ -151,3 +156,10 @@ class MapWindow(MainApplication):
         
     def on_closing(self):
         self.parent.withdraw()
+        
+class WarningWindow(MainApplication):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent=None, *args, **kwargs)
+        self.parent = parent
+        
+        self.label = self.Label("Loading waveforms")
