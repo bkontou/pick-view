@@ -142,7 +142,7 @@ class MapWindow(MainApplication):
                 #self.a.scatter(ev.lat,ev.lon, c='black')
             
         
-        self.a.scatter(current.lat,current.lon, facecolors='none', edgecolors='r', s=80)
+        self.a.scatter(current.lon,current.lat, facecolors='none', edgecolors='r', s=80)
         
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.parent)  # A tk.DrawingArea.
         

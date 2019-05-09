@@ -102,7 +102,7 @@ class MainWindow(MainApplication):
         
         ###CHANGE THIS###
         self.path = 'C:/Users/bkontou/Documents/archive'
-        self.maxwf = 10
+        self.maxwf = 50
         
         #info
         self.p_date = "None"
