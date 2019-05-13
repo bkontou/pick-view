@@ -187,7 +187,12 @@ class MainWindow(MainApplication):
         
 
     def updateWaveforms(self):
-                
+        
+        self.loading = tk.Toplevel()
+        self.loading_err = WarningWindow(self.loading)
+        self.loading_err.pack(side="top", fill="both", expand=True)
+        
+        
         for event in self.evList:
             event.streamH = Stream()
             event.streamV = Stream()
@@ -202,6 +207,7 @@ class MainWindow(MainApplication):
             ev.streamH = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha='HHE').build()
             ev.streamV = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha='HHZ').build()
     
+            ev.loadFig()
 
 
     def updateInfo(self):
