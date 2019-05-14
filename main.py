@@ -80,6 +80,10 @@ class MainWindow(MainApplication):
         self.map = MapWindow(self.map_popup)
         self.map.pack(side="top", fill="both", expand=True)
         
+        self.test_popup = tk.Toplevel()
+        self.test = Test(self.test_popup)
+        self.test.pack(side="top", fill="both", expand=True)
+        
         self.map_popup.protocol("WM_DELETE_WINDOW", self.map.on_closing)
         
         self.winfo_toplevel().title("Pick Viewer")
@@ -199,7 +203,7 @@ class MainWindow(MainApplication):
             event.streamH = Stream()
             event.streamV = Stream()
             
-            event.fig = None
+            event.fig = Figure(figsize=(16, 16), dpi=100)
         
         for ev in self.evList[self.group_N*self.maxwf:self.group_N*self.maxwf+self.maxwf]:
             
@@ -291,6 +295,10 @@ class MainWindow(MainApplication):
         self.popup.update()
         self.popup.deiconify()
         self.wfs.plot(self.evList[self.N])
+        
+        self.test_popup.update()
+        self.test_popup.deiconify()
+        self.test.plot()
         
     def updateWindow(self):
         self.map.plot(self.evList, self.evList[self.N])
