@@ -77,17 +77,17 @@ class MapWindow(MainApplication):
         
         for ev in origins:
             if ev.status == 'unassigned':
-                self.a.scatter(ev.lat,ev.lon, c='turquoise')
+                self.a.scatter(ev.lon,ev.lat, c='turquoise')
             if ev.status == 'correct':
-                self.a.scatter(ev.lat,ev.lon, c='green')
+                self.a.scatter(ev.lon,ev.lat, c='green')
             if ev.status == 'review':
-                self.a.scatter(ev.lat,ev.lon, c='orange', alpha=0.5)
+                self.a.scatter(ev.lon,ev.lat, c='orange', alpha=0.5)
             if ev.status == 'false':
                 pass
                 #self.a.scatter(ev.lat,ev.lon, c='black')
             
         
-        self.a.scatter(current.lat,current.lon, facecolors='none', edgecolors='r', s=80)
+        self.a.scatter(current.lon,current.lat, facecolors='none', edgecolors='r', s=80)
         
         self.canvas = FigureCanvasTkAgg(self.fig, master=self.parent)  # A tk.DrawingArea.
         
@@ -117,14 +117,14 @@ class Test(MainApplication):
         self.widget = None
         self.toolbar = None
         
-        self.ani = None
 # =============================================================================
+#         self.ani = None
 #         
-#         #self.fig = Figure(Figure(figsize=(5,5), dpi=100))
+#         self.fig = Figure(figsize=(5,5), dpi=100)
 #         self.ax1 = self.fig.add_subplot(111)
 #         self.line, = self.ax1.plot([],[],lw=2)
 #         self.canvas = FigureCanvasTkAgg(self.fig, master=self.parent)
-#         self.canvas.show()
+#         self.canvas.draw()
 #         self.canvas.get_tk_widget().pack()
 # =============================================================================
             
