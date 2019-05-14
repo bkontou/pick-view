@@ -188,10 +188,12 @@ class MainWindow(MainApplication):
 
     def updateWaveforms(self):
         
-        self.loading = tk.Toplevel()
-        self.loading_err = WarningWindow(self.loading)
-        self.loading_err.pack(side="top", fill="both", expand=True)
-        
+# =============================================================================
+#         self.loading = tk.Toplevel()
+#         self.loading_err = WarningWindow(self.loading)
+#         self.loading_err.pack(side="top", fill="both", expand=True)
+# =============================================================================
+        self.saveState("autosave")
         
         for event in self.evList:
             event.streamH = Stream()
@@ -254,13 +256,13 @@ class MainWindow(MainApplication):
         else:
             self.orid_checklist.to_csv('%s-out.csv' % self.csv_E.get())
                     
-    def saveState(self):
+    def saveState(self, name="backup"):
         stateDict = {'evList':self.evList,
                      'N':self.N,
                      'Npicks':self.Npicks,
                      'group_N':self.group_N}
         
-        with open('./saves/%s.p' % 'backup','wb') as f:
+        with open('./saves/%s.p' % name,'wb') as f:
             pickle.dump(stateDict, f)
 
     ###BINDINGS
