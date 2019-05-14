@@ -198,6 +198,8 @@ class MainWindow(MainApplication):
         for event in self.evList:
             event.streamH = Stream()
             event.streamV = Stream()
+            
+            event.fig = None
         
         for ev in self.evList[self.group_N*self.maxwf:self.group_N*self.maxwf+self.maxwf]:
             
