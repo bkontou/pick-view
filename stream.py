@@ -347,5 +347,5 @@ class Stream(op.Stream):
         self.fix_cut()
         self.remove_duplicates()
         self.fix_masked()
-        self.filter('bandpass', freqmin=2, freqmax=20)
+        self.filter('bandpass', freqmin=5, freqmax=20)
         return self

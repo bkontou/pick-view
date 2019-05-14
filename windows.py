@@ -118,7 +118,16 @@ class Test(MainApplication):
         self.toolbar = None
         
         self.ani = None
-    
+# =============================================================================
+#         
+#         #self.fig = Figure(Figure(figsize=(5,5), dpi=100))
+#         self.ax1 = self.fig.add_subplot(111)
+#         self.line, = self.ax1.plot([],[],lw=2)
+#         self.canvas = FigureCanvasTkAgg(self.fig, master=self.parent)
+#         self.canvas.show()
+#         self.canvas.get_tk_widget().pack()
+# =============================================================================
+            
     def plot(self):
         
         print("OOOOO")
