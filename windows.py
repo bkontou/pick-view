@@ -38,69 +38,12 @@ class WaveformWindow(MainApplication):
         if self.toolbar:
             self.toolbar.destroy()
         
-# =============================================================================
-#         try:
-#             del self.streamV
-#             del self.streamH
-#         except:
-#             pass
-# =============================================================================
-        
-        try:
-            del self.fig
-            del self.canvas
-        except:
-            pass
-        
+
         cut_start = 10 #time in seconds to cut from start
         cut_end = 10   #same thing but for the end
-# =============================================================================
-#         start_time = op.UTCDateTime(origDF.datetime.apply(op.UTCDateTime).min())-cut_start-5
-#         end_time = op.UTCDateTime(origDF.datetime.apply(op.UTCDateTime).max())+cut_end+5
-#         
-#         self.readWf(path, start=start_time, end=end_time, origDF=origDF)
-#         
-# =============================================================================
-# =============================================================================
-#         self.fig = Figure(figsize=(16, 16), dpi=100)
-#         a = self.fig.add_subplot(len(event.streamV),2,1)
-#         n = 1
-#         for tv, th in zip(event.streamV, event.streamH):
-#             tv.data = tv.data[cut_start*100:]
-#             tv.data = tv.data[:len(tv.data)-cut_end]
-#             
-#             th.data = th.data[cut_start*100:]
-#             th.data = th.data[:len(th.data)-cut_end]
-#             
-#             a = self.fig.add_subplot(len(event.streamH),2,2*n)
-#             a.plot(th, label=th.id)
-#             for index, row in event.evInfo.iterrows():
-#                 if row['sta'] == th.stats.station:
-#                     cut_time = event.timemin
-#                     pick_loc = int((op.UTCDateTime(row['datetime']) - cut_time)*100)
-#                     #pick_loc = (op.UTCDateTime(row['datetime']) - start_time)*100
-#                     if row['phase'] == 'S':
-#                         a.axvline(x=pick_loc, c='black')
-#                         a.text(pick_loc+1,0, row['phase'], rotation=90)
-#             
-# 
-#             a = self.fig.add_subplot(len(event.streamV),2,2*n-1)
-#             a.plot(tv, label=tv.id)
-#             for index, row in event.evInfo.iterrows():
-#                 if row['sta'] == tv.stats.station:
-#                     cut_time = event.timemin
-#                     pick_loc = int((op.UTCDateTime(row['datetime']) - cut_time)*100)
-#                     #pick_loc = (op.UTCDateTime(row['datetime']) - start_time)*100
-#                     if row['phase'] == 'P':
-#                         a.axvline(x=pick_loc, c='black')
-#                         a.text(pick_loc+1,0, row['phase'], rotation=90)
-#             
-#             n += 1
-# 
-#         self.fig.text(0,0,"ORID: %s" % event.evInfo.iloc[0].orid)
-# =============================================================================
         
         self.canvas = FigureCanvasTkAgg(event.fig, master=self.parent)  # A tk.DrawingArea.
+        #self.canvas.flush_events()
         
         self.toolbar = NavigationToolbar2Tk(self.canvas, self)
         
