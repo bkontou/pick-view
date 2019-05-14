@@ -102,6 +102,20 @@ class MapWindow(MainApplication):
     def on_closing(self):
         self.parent.withdraw()
         
+class Test(MainApplication):
+    def __init__(self, parent, *args, **kwargs):
+        tk.Frame.__init__(self, parent=None, *args, **kwargs)
+        self.parent = parent
+        
+        self.widget = None
+        self.toolbar = None
+        
+        self.ani = None
+    
+    def plot(self):
+        
+        print("OOOOO")
+        
 class WarningWindow(MainApplication):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent=None, *args, **kwargs)

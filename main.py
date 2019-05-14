@@ -19,11 +19,13 @@ from matplotlib.backends.backend_tkagg import (
 # Implement the default Matplotlib key bindings.
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
+
 from functools import partial
 
 from windows import *
 from stream import Stream
 from event import Event
+
 
 class MainApplication(tk.Frame):
     def __init__(self, parent, *args, **kwargs):
@@ -80,6 +82,10 @@ class MainWindow(MainApplication):
         self.map = MapWindow(self.map_popup)
         self.map.pack(side="top", fill="both", expand=True)
         
+        self.test_popup = tk.Toplevel()
+        self.test = Test(self.test_popup)
+        self.test.pack(side="top", fill="both", expand=True)
+        
         self.map_popup.protocol("WM_DELETE_WINDOW", self.map.on_closing)
         
         self.winfo_toplevel().title("Pick Viewer")
@@ -102,7 +108,7 @@ class MainWindow(MainApplication):
         
         ###CHANGE THIS###
         self.path = 'C:/Users/bkontou/Documents/archive'
-        self.maxwf = 50
+        self.maxwf = 5
         
         #info
         self.p_date = "None"
@@ -287,6 +293,10 @@ class MainWindow(MainApplication):
         self.popup.update()
         self.popup.deiconify()
         self.wfs.plot(self.evList[self.N])
+        
+        self.test_popup.update()
+        self.test_popup.deiconify()
+        self.test.plot()
         
     def updateWindow(self):
         self.map.plot(self.evList, self.evList[self.N])
