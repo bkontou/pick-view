@@ -6,6 +6,7 @@ Created on Wed Apr 10 13:10:06 2019
 """
 from main import *
 from stream import Stream
+import matplotlib
 
 class WaveformWindow(MainApplication):
     def __init__(self, parent, master, *args, **kwargs):
@@ -113,21 +114,35 @@ class Test(MainApplication):
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent=None, *args, **kwargs)
         self.parent = parent
+
+        self.parent.bind('q',self.nextFrame)
         
         self.widget = None
         self.toolbar = None
         
-# =============================================================================
-#         self.ani = None
-#         
-#         self.fig = Figure(figsize=(5,5), dpi=100)
-#         self.ax1 = self.fig.add_subplot(111)
-#         self.line, = self.ax1.plot([],[],lw=2)
-#         self.canvas = FigureCanvasTkAgg(self.fig, master=self.parent)
-#         self.canvas.draw()
-#         self.canvas.get_tk_widget().pack()
-# =============================================================================
-            
-    def plot(self):
+        self.ani = None
         
-        print("OOOOO")
+        self.widget = None
+        self.toolbar = None
+        
+        self.fig = Figure(figsize=(16, 16), dpi=100)
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.parent)
+        self.widget = self.canvas.get_tk_widget()
+        self.widget.pack(fill=tk.BOTH)
+                
+    def nextFrame(self, _event=None):
+        self.ani._step()
+        self.ani.event_source.stop()
+        
+    def update(self,i):
+        self.fig.clear()
+        self.fig = i.fig
+        
+        self.canvas.draw()
+    
+    def plot(self, evList):
+        print("woo")
+        self.ani = animation.FuncAnimation(self.fig, self.update, frames=evList)
+        
+        
+

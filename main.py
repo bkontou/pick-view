@@ -19,6 +19,7 @@ from matplotlib.backends.backend_tkagg import (
 # Implement the default Matplotlib key bindings.
 from matplotlib.backend_bases import key_press_handler
 from matplotlib.figure import Figure
+import matplotlib.animation as animation
 from functools import partial
 
 from windows import *
@@ -80,9 +81,11 @@ class MainWindow(MainApplication):
         self.map = MapWindow(self.map_popup)
         self.map.pack(side="top", fill="both", expand=True)
         
-        self.test_popup = tk.Toplevel()
-        self.test = Test(self.test_popup)
-        self.test.pack(side="top", fill="both", expand=True)
+# =============================================================================
+#         self.test_popup = tk.Toplevel()
+#         self.test = Test(self.test_popup)
+#         self.test.pack(side="top", fill="both", expand=True)
+# =============================================================================
         
         self.map_popup.protocol("WM_DELETE_WINDOW", self.map.on_closing)
         
@@ -106,7 +109,7 @@ class MainWindow(MainApplication):
         
         ###CHANGE THIS###
         self.path = 'C:/Users/bkontou/Documents/archive'
-        self.maxwf = 50
+        self.maxwf = 5
         
         #info
         self.p_date = "None"
@@ -296,13 +299,16 @@ class MainWindow(MainApplication):
         self.popup.deiconify()
         self.wfs.plot(self.evList[self.N])
         
-        self.test_popup.update()
-        self.test_popup.deiconify()
-        self.test.plot()
+# =============================================================================
+#         self.test_popup.update()
+#         self.test_popup.deiconify()
+#         self.test.plot(self.evList[self.group_N*self.maxwf:self.group_N*self.maxwf+self.maxwf])
+# =============================================================================
         
     def updateWindow(self):
         self.map.plot(self.evList, self.evList[self.N])
         self.wfs.plot(self.evList[self.N])
+        #self.test.plot(self.evList[self.group_N*self.maxwf:self.group_N*self.maxwf+self.maxwf])
         
     def on_close(self):
         self.closed = 1
