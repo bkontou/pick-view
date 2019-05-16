@@ -39,6 +39,8 @@ class WaveformWindow(MainApplication):
         if self.toolbar:
             self.toolbar.destroy()
         
+        if self.canvas:
+            self.canvas.flush_events()
 
         cut_start = 10 #time in seconds to cut from start
         cut_end = 10   #same thing but for the end
