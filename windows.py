@@ -21,10 +21,10 @@ class WaveformWindow(MainApplication):
         self.widget = None
         self.toolbar = None
         
-        self.parent.bind('s',self.master.correctBind)
-        self.parent.bind('d',self.master.falseBind)
-        self.parent.bind('f',self.master.reviewBind)
-        self.parent.bind('g',self.master.skipBind)
+        self.parent.bind('g',self.master.correctBind)
+        self.parent.bind('b',self.master.falseBind)
+        self.parent.bind('r',self.master.reviewBind)
+        self.parent.bind('s',self.master.skipBind)
         
       
     def readWf(self, path, start, end, origDF):

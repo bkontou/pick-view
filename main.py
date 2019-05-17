@@ -64,10 +64,10 @@ class MainWindow(MainApplication):
         self.parent = parent
         self.test = "AAAAAAA"
         
-        self.parent.bind('s',self.correctBind)
-        self.parent.bind('d',self.falseBind)
-        self.parent.bind('f',self.reviewBind)
-        self.parent.bind('g',self.skipBind)
+        self.parent.bind('g',self.correctBind)
+        self.parent.bind('b',self.falseBind)
+        self.parent.bind('r',self.reviewBind)
+        self.parent.bind('s',self.skipBind)
         
         self.popup = tk.Toplevel()
         self.wfs = WaveformWindow(self.popup, self)
@@ -109,7 +109,7 @@ class MainWindow(MainApplication):
         
         ###CHANGE THIS###
         self.path = 'C:/Users/bkontou/Documents/archive'
-        self.maxwf = 5
+        self.maxwf = 25
         
         #info
         self.p_date = "None"
