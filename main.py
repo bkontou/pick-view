@@ -206,6 +206,7 @@ class MainWindow(MainApplication):
             event.streamH = Stream()
             event.streamV = Stream()
             
+            event._clearFig()
             event.fig = Figure(figsize=(16, 16), dpi=100)
         
         for ev in self.evList[self.group_N*self.maxwf:self.group_N*self.maxwf+self.maxwf]:

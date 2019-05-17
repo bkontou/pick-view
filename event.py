@@ -67,6 +67,9 @@ class Event:
             n += 1
 
         self.fig.text(0,0,"ORID: %s" % self.evInfo.iloc[0].orid)
+        
+    def _clearFig(self):
+        self.fig.clear()
     
     def __eq__(self, orid):
         if self.orid == orid:
