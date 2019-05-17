@@ -208,6 +208,8 @@ class MainWindow(MainApplication):
             
             event._clearFig()
             event.fig = Figure(figsize=(16, 16), dpi=100)
+            
+        self.wfs.flushCanvas()
         
         for ev in self.evList[self.group_N*self.maxwf:self.group_N*self.maxwf+self.maxwf]:
             

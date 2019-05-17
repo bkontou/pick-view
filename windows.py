@@ -38,9 +38,6 @@ class WaveformWindow(MainApplication):
         
         if self.toolbar:
             self.toolbar.destroy()
-        
-        if self.canvas:
-            self.canvas.flush_events()
 
         cut_start = 10 #time in seconds to cut from start
         cut_end = 10   #same thing but for the end
@@ -55,6 +52,13 @@ class WaveformWindow(MainApplication):
         
         self.canvas.draw()
         #self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)        
+    
+    def flushCanvas(self):
+        try:
+            if self.canvas:
+                self.canvas.flush_events()
+        except:
+            pass
     
     def on_closing(self):
         self.parent.withdraw()
