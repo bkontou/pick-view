@@ -115,8 +115,8 @@ class MainWindow(MainApplication):
         self.p_date = "None"
         self.p_id = "None"
 
-        self.P_cha = "HHZ"
-        self.S_cha = "HHE"
+        self.P_cha = ["HHZ"]
+        self.S_cha = ["HHE","HH1"]
         
         #Widgets#
         self.wf_B = self.Button('view waveform', f=self.showWindow)
@@ -218,8 +218,8 @@ class MainWindow(MainApplication):
             start_time = ev.timemin-cut_start
             end_time = ev.timemax+cut_end
             
-            ev.streamH = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha='HHE').build()
-            ev.streamV = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha='HHZ').build()
+            ev.streamH = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha=self.P_cha).build()
+            ev.streamV = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha=self.S_cha).build()
     
             ev.loadFig()
 

@@ -8,8 +8,21 @@ from main import *
 from stream import Stream
 import matplotlib
 
+"""
+Contains classes representing different window types
+
+All windows inherit methods from MainApplication window class
+"""
+
 class WaveformWindow(MainApplication):
+    """
+    Window to display waveform
+    """
     def __init__(self, parent, master, *args, **kwargs):
+        """
+        WaveformWindow contains a reference to the main window, this way it can access any
+        of the main windows methods and members, including key bindings
+        """
         tk.Frame.__init__(self, parent=None, *args, **kwargs)
         self.parent = parent
         self.master = master
@@ -28,10 +41,16 @@ class WaveformWindow(MainApplication):
         
       
     def readWf(self, path, start, end, origDF):
+        """
+        Out dated
+        """
         self.streamV = Stream(path=path, starttime=start, endtime=end, origDF=origDF, cha='HHZ').build()
         self.streamH = Stream(path=path, starttime=start, endtime=end, origDF=origDF, cha='HHE').build()
     
     def plot(self, event):
+        """
+        Uses the passed event's event.fig to plot
+        """
         
         if self.widget:
             self.widget.destroy()
@@ -39,8 +58,6 @@ class WaveformWindow(MainApplication):
         if self.toolbar:
             self.toolbar.destroy()
 
-        cut_start = 10 #time in seconds to cut from start
-        cut_end = 10   #same thing but for the end
         
         self.canvas = FigureCanvasTkAgg(event.fig, master=self.parent)  # A tk.DrawingArea.
         #self.canvas.flush_events()
@@ -65,6 +82,9 @@ class WaveformWindow(MainApplication):
 
 
 class MapWindow(MainApplication):
+    """
+    Window to display map
+    """
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent=None, *args, **kwargs)
         self.parent = parent
@@ -73,6 +93,13 @@ class MapWindow(MainApplication):
         self.toolbar = None
     
     def plot(self, origins, current):
+        """
+        Arguments:
+            origins: list of events. evList in main.py
+            current: current event
+    
+        Plot uses the lat and lon of each event to plot a simple map with matplotlib's scatter function
+        """
         if self.widget:
             self.widget.destroy()
         
@@ -110,6 +137,9 @@ class MapWindow(MainApplication):
         self.parent.withdraw()
         
 class WarningWindow(MainApplication):
+    """
+    Window to popup with warning. Does not work.
+    """
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent=None, *args, **kwargs)
         self.parent = parent
@@ -117,6 +147,9 @@ class WarningWindow(MainApplication):
         self.label = self.Label("Loading waveforms")
         
 class Test(MainApplication):
+    """
+    Test window. Not implemented.
+    """
     def __init__(self, parent, *args, **kwargs):
         tk.Frame.__init__(self, parent=None, *args, **kwargs)
         self.parent = parent

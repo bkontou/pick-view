@@ -155,7 +155,7 @@ class Stream(op.Stream):
             s = str(s)
             n = str(n)
             c = str(c)
-            print("Warning: file %s %s %s either missing or corrupt. Zeroing waveform." % (s,n,c))
+            print("Warning: file %s %s %s %s either missing or corrupt. Zeroing waveform." % (self.starttime, s,n,c))
             tid = n+"."+s+".."+c
             t = op.Trace()
             t.id = tid
@@ -176,7 +176,7 @@ class Stream(op.Stream):
         for index, row in self.origDF.iterrows():
             s = row['sta']
             n = row['net']
-            c = self.cha
+            chans = self.cha
             month = str(self.starttime.month).zfill(2)
             day = str(self.starttime.day).zfill(2)
             
@@ -186,18 +186,30 @@ class Stream(op.Stream):
     
             if self.starttime.day == 1 and self.starttime.month == 1 and self.starttime.hour == 0:
                 #print("first hour of the year")
-                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                file = "0"
+                for c in chans:
+                    if file == "0":
+                        file = str(self._find_file(files,s,n,c))
+                file = self.path + month + '/' + day + '/' + file
                 
                 self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
             
             elif self.starttime.month == 12 and (self.starttime + 3600).month == 1:
                 #print("last hour of the year")
-                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                file = "0"
+                for c in chans:
+                    if file == "0":
+                        file = str(self._find_file(files,s,n,c))
+                file = self.path + month + '/' + day + '/' + file
                         
                 self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
             elif (self.starttime + 3600).month > self.starttime.month:
                 #print("last hour of the month")
-                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                file = "0"
+                for c in chans:
+                    if file == "0":
+                        file = str(self._find_file(files,s,n,c))
+                file = self.path + month + '/' + day + '/' + file
                         
                 self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
     
@@ -205,13 +217,21 @@ class Stream(op.Stream):
                 dayprev = "01"
                 
                 filesprev = os.listdir(self.path + monthnext + '/' + dayprev + '/')
+                fileprev = "0"
+                for c in chans:
+                    if fileprev == "0":
+                        fileprev = str(self._find_file(filesprev,s,n,c))
                 
-                file = self.path + monthnext + '/' + dayprev + '/' + str(self._find_file(filesprev,s,n,c))
+                file = self.path + monthnext + '/' + dayprev + '/' + file
                 
                 self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
             elif int(self.starttime.hour) == 0:
                 #print("first hour of day")
-                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                file = "0"
+                for c in chans:
+                    if file == "0":
+                        file = str(self._find_file(files,s,n,c))
+                file = self.path + month + '/' + day + '/' + file
                         
                 self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
     
@@ -220,26 +240,43 @@ class Stream(op.Stream):
                 monthprev = str((self.starttime - 3600).month).zfill(2)
                 
                 filesprev = os.listdir(self.path + monthprev + '/' + dayprev + '/')
+                fileprev = "0"
+                for c in chans:
+                    if fileprev == "0":
+                        fileprev = str(self._find_file(filesprev,s,n,c))
                 
-                file = self.path + monthprev + '/' + dayprev + '/' + str(self._find_file(filesprev,s,n,c))
+                file = self.path + monthprev + '/' + dayprev + '/' + fileprev
                         
                 self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
     
             elif int(self.starttime.hour) == 23:
                 #print("last hour of day")
-                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                file = "0"
+                for c in chans:
+                    if file == "0":
+                        file = str(self._find_file(files,s,n,c))
+                file = self.path + month + '/' + day + '/' + file
                         
                 self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
     
                 daynext = str((self.starttime + 3600).day).zfill(2)
-                filesprev = os.listdir(self.path + month + '/' + daynext + '/')
                 
-                file = self.path + month + '/' + daynext + '/' + str(self._find_file(filesprev,s,n,c))
+                filesprev = os.listdir(self.path + month + '/' + daynext + '/')
+                fileprev = "0"
+                for c in chans:
+                    if fileprev == "0":
+                        fileprev = str(self._find_file(filesprev,s,n,c))
+                
+                file = self.path + month + '/' + daynext + '/' + fileprev
                         
                 self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)
             else:
                 
-                file = self.path + month + '/' + day + '/' + str(self._find_file(files,s,n,c))
+                file = "0"
+                for c in chans:
+                    if file == "0":
+                        file = str(self._find_file(files,s,n,c))
+                file = self.path + month + '/' + day + '/' + file
                         
                 self += self._get_trace(file, s, n, c, starttime=self.starttime, endtime=self.endtime)              
 
