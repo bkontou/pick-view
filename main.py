@@ -101,6 +101,7 @@ class MainWindow(MainApplication):
         self.Npicks = len(self.pick_df)
         self.N = 0
         self.group_N = 0
+        self.group_df = 0
         self.pick_info = {}
         
         self.current_event_status = False
@@ -109,7 +110,8 @@ class MainWindow(MainApplication):
         
         ###CHANGE THIS###
         self.path = 'C:/Users/bkontou/Documents/archive'
-        self.maxwf = 25
+        self.MAX_LOADED_EVENTS = 25
+        self.MAX_DF_EVENTS = 1000
         
         #info
         self.p_date = "None"
@@ -156,7 +158,7 @@ class MainWindow(MainApplication):
             print("No file selected")
         
     def loadDF(self):
-        self.pick_df = pd.read_csv(self.csv_E.get())
+        self.pick_df = pd.read_csv(self.csv_E.get())        
         self.pick_df = self.pick_df.sort_values('orid')
         self.orid_list = self.pick_df.orid.unique()
         
@@ -164,6 +166,7 @@ class MainWindow(MainApplication):
         for orid in self.orid_list:
             self.evList.append(Event(self.pick_df[self.pick_df.orid == orid]))
         
+        del self.pick_df
         
         self.Npicks = len(self.orid_list)
         self.N = 0
@@ -203,15 +206,16 @@ class MainWindow(MainApplication):
         self.saveState("autosave")
         
         for event in self.evList:
-            event.streamH = Stream()
-            event.streamV = Stream()
+            event.streamH = None
+            event.streamV = None
             
             event._clearFig()
-            event.fig = Figure(figsize=(16, 16), dpi=100)
+            event.fig = None
             
-        self.wfs.flushCanvas()
+        self.wfs.flush_canvas()
+        self.map.flush_canvas()
         
-        for ev in self.evList[self.group_N*self.maxwf:self.group_N*self.maxwf+self.maxwf]:
+        for ev in self.evList[self.group_N*self.MAX_LOADED_EVENTS:self.group_N*self.MAX_LOADED_EVENTS+self.MAX_LOADED_EVENTS]:
             
             cut_start = 10 #time in seconds to cut from start
             cut_end = 10   #same thing but for the end
@@ -235,7 +239,7 @@ class MainWindow(MainApplication):
     def scrollUp(self):
         self.N = (self.N - 1)%self.Npicks
         
-        if self.N%self.maxwf == 0 and self.N != 0:
+        if self.N%self.MAX_LOADED_EVENTS == 0 and self.N != 0:
             print("reading new waveforms")
             self.group_N -= 1
             self.updateWaveforms()
@@ -248,7 +252,7 @@ class MainWindow(MainApplication):
             self.evList[self.N].status = status
         self.N = (self.N + 1)%self.Npicks
         
-        if self.N%self.maxwf == 0 and self.N != 0:
+        if self.N%self.MAX_LOADED_EVENTS == 0 and self.N != 0:
             print("reading new waveforms")
             self.group_N += 1
             self.updateWaveforms()

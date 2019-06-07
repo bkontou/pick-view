@@ -10,28 +10,45 @@ import obspy as op
 from main import *
 
 class Event:
-    def __init__(self, evInfo):
-        self.evInfo = evInfo.sort_values('arrival_time')
+    def __init__(self, evInfo, ev=None):
+        if ev == None:
         
-        self.orid = evInfo.iloc[0].orid
+            self.evInfo = evInfo.sort_values('arrival_time')
+            
+            self.orid = evInfo.iloc[0].orid
+            
+            self.cut_start = 10
+            self.cut_end = 10 
+            
+            self.timemin = evInfo.datetime.apply(op.UTCDateTime).min()-self.cut_start
+            self.timemax = evInfo.datetime.apply(op.UTCDateTime).max()+self.cut_end
+            
+            self.status = 'unassigned'
+            
+            self.lat = evInfo.iloc[0].lat
+            self.lon = evInfo.iloc[0].lon
         
-        self.cut_start = 10
-        self.cut_end = 10 
+        else:
+            self.evInfo = ev.evInfo
+            self.lat = ev.lat
+            self.lon = ev.lon
+            self.orid = ev.orid
+            self.status = ev.status
+            
+            self.cut_start = 10
+            self.cut_end = 10
+            
+            self.timemin = ev.evInfo.datetime.apply(op.UTCDateTime).min()-self.cut_start
+            self.timemax = ev.evInfo.datetime.apply(op.UTCDateTime).max()+self.cut_end
+            
         
-        self.timemin = evInfo.datetime.apply(op.UTCDateTime).min()-self.cut_start
-        self.timemax = evInfo.datetime.apply(op.UTCDateTime).max()+self.cut_end
+        self.streamV = None
+        self.streamH = None
         
-        self.status = 'unassigned'
-        
-        self.lat = evInfo.iloc[0].lat
-        self.lon = evInfo.iloc[0].lon
-        
-        self.streamV = Stream()
-        self.streamH = Stream()
-        
-        self.fig = Figure(figsize=(16, 16), dpi=100)
+        self.fig = None
         
     def loadFig(self):
+        self.fig = Figure(figsize=(16, 16), dpi=100)
         a = self.fig.add_subplot(len(self.streamV),2,1)
         n = 1
         for tv, th in zip(self.streamV, self.streamH):
@@ -69,7 +86,10 @@ class Event:
         self.fig.text(0,0,"ORID: %s" % self.evInfo.iloc[0].orid)
         
     def _clearFig(self):
-        self.fig.clear()
+        try:
+            self.fig.clear()
+        except:
+            pass
     
     def __eq__(self, orid):
         if self.orid == orid:

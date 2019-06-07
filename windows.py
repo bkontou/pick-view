@@ -70,7 +70,7 @@ class WaveformWindow(MainApplication):
         self.canvas.draw()
         #self.canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand=1)        
     
-    def flushCanvas(self):
+    def flush_canvas(self):
         try:
             if self.canvas:
                 self.canvas.flush_events()
@@ -131,7 +131,14 @@ class MapWindow(MainApplication):
         self.widget.pack(fill=tk.BOTH)
         
         self.canvas.draw()
+                
         
+    def flush_canvas(self):
+        try:
+            if self.canvas:
+                self.canvas.flush_events()
+        except:
+            pass
         
     def on_closing(self):
         self.parent.withdraw()
