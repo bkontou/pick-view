@@ -110,7 +110,7 @@ class MainWindow(MainApplication):
         
         ###CHANGE THIS###
         self.path = 'C:/Users/bkontou/Documents/archive'
-        self.MAX_LOADED_EVENTS = 25
+        self.MAX_LOADED_EVENTS = 5
         self.MAX_DF_EVENTS = 1000
         
         #info
@@ -222,8 +222,8 @@ class MainWindow(MainApplication):
             start_time = ev.timemin-cut_start
             end_time = ev.timemax+cut_end
             
-            ev.streamH = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha=self.P_cha).build()
-            ev.streamV = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha=self.S_cha).build()
+            ev.streamH = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha=self.S_cha).build()
+            ev.streamV = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha=self.P_cha).build()
     
             ev.loadFig()
 
@@ -273,6 +273,13 @@ class MainWindow(MainApplication):
             self.orid_checklist.to_csv('%s-out.csv' % self.csv_E.get())
                     
     def saveState(self, name="backup"):
+        for event in self.evList:
+            event.streamH = None
+            event.streamV = None
+            
+            event._clearFig()
+            event.fig = None
+        
         stateDict = {'evList':self.evList,
                      'N':self.N,
                      'Npicks':self.Npicks,

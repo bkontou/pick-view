@@ -60,6 +60,9 @@ class Event:
             
             a = self.fig.add_subplot(len(self.streamH),2,2*n)
             a.plot(th, label=th.id)
+            a.set_xticklabels([x.second for x in np.arange(th.stats.starttime, th.stats.endtime,5)])
+            a.text(0.5,max(th.data)*0.9, th.id)
+            
             for index, row in self.evInfo.iterrows():
                 if row['sta'] == th.stats.station:
                     cut_time = self.timemin
@@ -72,6 +75,9 @@ class Event:
 
             a = self.fig.add_subplot(len(self.streamV),2,2*n-1)
             a.plot(tv, label=tv.id)
+            a.set_xticklabels([x.second for x in np.arange(tv.stats.starttime, tv.stats.endtime,5)])
+            a.text(0.5,max(tv.data)*0.9, tv.id)
+
             for index, row in self.evInfo.iterrows():
                 if row['sta'] == tv.stats.station:
                     cut_time = self.timemin
@@ -83,7 +89,7 @@ class Event:
             
             n += 1
 
-        self.fig.text(0,0,"ORID: %s" % self.evInfo.iloc[0].orid)
+        self.fig.text(0,0,"ORID: %s" % self.evInfo.iloc[0].orid)        
         
     def _clearFig(self):
         try:
