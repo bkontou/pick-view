@@ -108,8 +108,11 @@ class MainWindow(MainApplication):
         
         self.evList = []
         
+        self.session_id = ''
+        
         ###CHANGE THIS###
         self.path = 'C:/Users/bkontou/Documents/archive'
+        self.out_path = ''
         self.MAX_LOADED_EVENTS = 5
         self.MAX_DF_EVENTS = 1000
         
@@ -175,6 +178,8 @@ class MainWindow(MainApplication):
         self.Npicks = len(self.orid_list)
         self.N = 0
         
+        self.session_id = str(self.evList[0].timemin.date) + '-' + str(op.UTCDateTime.now().timestamp)
+        
         self.updateWaveforms()
         
         self.updateInfo()
@@ -194,6 +199,8 @@ class MainWindow(MainApplication):
         self.Npicks = info['Npicks']
         self.group_N = int(self.N/self.MAX_LOADED_EVENTS)
         #self.group_N = info['group_N']
+        
+        str(self.evList[0].timemin.date) + '-' + str(op.UTCDateTime.now().timestamp)
         
         self.updateWaveforms()
         
@@ -279,9 +286,9 @@ class MainWindow(MainApplication):
         #self.orid_checklist = pd.DataFrame.from_dict(self.orid_checklist)
         
         if crash:
-            pd.DataFrame.from_dict(self.orid_checklist).to_csv('backup.csv')
+            pd.DataFrame.from_dict(self.orid_checklist).to_csv(self.out_path + self.session_id + '-backup.csv')
         else:
-            pd.DataFrame.from_dict(self.orid_checklist).to_csv('%s-out.csv' % self.csv_E.get())
+            pd.DataFrame.from_dict(self.orid_checklist).to_csv(self.out_path + self.session_id + '-out.csv')
                     
     def saveState(self, name="backup"):
         for event in self.evList:
