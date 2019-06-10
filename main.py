@@ -150,6 +150,10 @@ class MainWindow(MainApplication):
         #self.goodev_CB.configure(state='disable')
         
     def load(self):
+        
+        print("clearing environment")
+        self._clear_environment()
+        
         if self.save_E.get():
             self.loadSave()
         elif self.csv_E.get():
@@ -180,14 +184,21 @@ class MainWindow(MainApplication):
         with open(self.save_E.get(),'rb') as f:
             info = pickle.load(f)
             
-        self.evList = info['evList']
+        #self.evList = info['evList']
+        
+        for i, ev in enumerate(info['evList']):
+            self.evList.append(Event(ev.evInfo))
+            self.evList[i].status = ev.status
+        
         self.N = info['N']
         self.Npicks = info['Npicks']
-        self.group_N = info['group_N']
+        self.group_N = int(self.N/self.MAX_LOADED_EVENTS)
+        #self.group_N = info['group_N']
         
         self.updateWaveforms()
         
         self.updateInfo()
+        
         self.updateWindow()
     
     def FileWindow(self, entry, event=None):
@@ -226,7 +237,7 @@ class MainWindow(MainApplication):
             ev.streamV = Stream(path=self.path, starttime=start_time, endtime=end_time, origDF=ev.evInfo, cha=self.P_cha).build()
     
             ev.loadFig()
-
+    
 
     def updateInfo(self):
         self.time_L.config(text=self.evList[self.N].timemin)
@@ -265,12 +276,12 @@ class MainWindow(MainApplication):
             self.orid_checklist['orid'].append(event.orid)
             self.orid_checklist['status'].append(event.status)
         
-        self.orid_checklist = pd.DataFrame.from_dict(self.orid_checklist)
+        #self.orid_checklist = pd.DataFrame.from_dict(self.orid_checklist)
         
         if crash:
-            self.orid_checklist.to_csv('backup.csv')
+            pd.DataFrame.from_dict(self.orid_checklist).to_csv('backup.csv')
         else:
-            self.orid_checklist.to_csv('%s-out.csv' % self.csv_E.get())
+            pd.DataFrame.from_dict(self.orid_checklist).to_csv('%s-out.csv' % self.csv_E.get())
                     
     def saveState(self, name="backup"):
         for event in self.evList:
@@ -300,7 +311,7 @@ class MainWindow(MainApplication):
     ###
     
         
-    def Debug(self):
+    def debug(self):
         print(self.pick_df)
         
     def showWindow(self):
@@ -323,6 +334,23 @@ class MainWindow(MainApplication):
         self.map.plot(self.evList, self.evList[self.N])
         self.wfs.plot(self.evList[self.N])
         #self.test.plot(self.evList[self.group_N*self.maxwf:self.group_N*self.maxwf+self.maxwf])
+        
+    def _clear_environment(self):
+        self.pick_df = pd.DataFrame()
+        self.orid_df = pd.DataFrame()
+        self.orig_locs = {'lat':[],'lon':[]}
+        self.orid_checklist = {'orid':[],'status':[]}
+        
+        self.orid_list = []
+        self.Npicks = len(self.pick_df)
+        self.N = 0
+        self.group_N = 0
+        self.group_df = 0
+        self.pick_info = {}
+        
+        self.current_event_status = False
+        
+        self.evList = []
         
     def on_close(self):
         self.closed = 1
